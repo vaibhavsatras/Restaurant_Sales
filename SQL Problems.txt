@@ -1,0 +1,26 @@
+
+--Joining the tables for the analysis and Dashboard 
+
+--Order Summary
+
+--Time of Order Summary
+
+--Customer Summary, Top Customers by Orders
+
+--Customer Summary, Top Customers by Revenue
+
+--Payment Mode Summary
+
+--Restaurant Summary, Top Restaurant by Orders
+
+--Restaurant Summary, Top Restaurant by Revenue
+
+
+--Restaurant Summary, Top Restaurant by Delivery rating
+
+
+--Cuisine Summary
+
+--Category Summary
+
+--Zone Summary
