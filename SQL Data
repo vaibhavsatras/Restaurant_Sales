@@ -1,0 +1,116 @@
+
+-- Joining the tables for the analysis and Dashboard 
+select * from order_details join restaurant_details on order_details.Restaurant__ID = restaurant_details.RestaurantID;
+
+-- Order Summary
+select
+count(order_details.Order__ID) as 'Total_Order',
+count(distinct order_details.Customer__Name) as 'Total_Customers',
+sum(order_details.Order__Amount) as 'Total Order Sale',
+sum(order_details.Quantity__of__Items) as 'Total Ordered Qty',
+count(distinct restaurant_details.RestaurantName) as 'Total_Restaurant',
+avg(order_details.Delivery__Time__Taken__mins) as 'Average Of Delivery Time',
+avg(order_details.Customer_Rating_Food) as 'Average of Food Rating',
+avg(order_details.Customer_Rating_Delivery) as 'Average of Delivery Rating'
+from order_details join restaurant_details
+ on order_details.Restaurant__ID = restaurant_details.RestaurantID;
+ 
+ -- Time of Order Summary
+
+-- Total Order count Based on Time
+select distinct Order__Date,count(Order__ID) over(partition by Order__Date order by Order__Date) as 'Total_Count' from
+ order_details;
+ 
+ -- Customer Summary, Top Customers by Orders
+ 
+ select * from (select *, rank() over(order by Total_Order_Count desc) as Ranking
+ from (select Customer__Name,count(Order__ID) as 'Total_Order_Count'
+ from order_details group by Customer__Name order by  count(Order__ID) desc) as Total_Order) as CTE
+ where Ranking < 4;
+ 
+ 
+ -- Customer Summary, Top Customers by Revenue
+ select * from order_details;
+ 
+ with CTE as (select *, dense_rank() over(order by Total_Revenue desc) as Ranking  from (select  Customer__Name, sum(Order__Amount) as 'Total_Revenue' from
+ order_details group by Customer__Name order by sum(Order__Amount) desc) as Revenue) 
+ select * from CTE where Ranking < 4;
+ 
+ -- Category Summary
+ 
+ select distinct restaurant_details.Category, count(order_details.Order__ID) over(partition by restaurant_details.Category) as 'Total_Order'
+ from order_details join restaurant_details
+ on order_details.Restaurant__ID = restaurant_details.RestaurantID;
+ 
+ select restaurant_details.Category, sum(order_details.Order__Amount) as 'Total_Revenue'
+ from order_details join restaurant_details on
+ order_details.Restaurant__ID = restaurant_details.RestaurantID
+ group by restaurant_details.Category order by sum(order_details.Order__Amount) desc;
+ 
+ -- Payment Mode Summary
+
+select Payment__Mode, count(Order__ID)as Total_Order from order_details group by Payment__Mode;
+
+-- Restaurant Summary, Top Restaurant by Orders
+
+select restaurant_details.RestaurantID,restaurant_details.RestaurantName, count(order_details.Order__ID) as 'Total Order by Restaurant'
+ from order_details join restaurant_details 
+on order_details.Restaurant__ID = restaurant_details.RestaurantID
+group by restaurant_details.RestaurantID,restaurant_details.RestaurantName
+order by count(order_details.Order__ID) desc limit 3;
+
+-- Restaurant Summary, Top Restaurant by Revenue
+select restaurant_details.RestaurantID, restaurant_details.RestaurantName,
+sum(order_details.Order__Amount) as 'Total_Revenue' 
+from order_details join restaurant_details on
+ order_details.Restaurant__ID = restaurant_details.RestaurantID
+ group by restaurant_details.RestaurantID, restaurant_details.RestaurantName
+ order by sum(order_details.Order__Amount) desc limit 3;
+ 
+ with CTE as 
+(select restaurant_details.RestaurantName,
+ count(order_details.Order__ID) 'Total_Order'
+ from order_details join restaurant_details 
+ on order_details.Restaurant__ID = restaurant_details.RestaurantID
+ group by restaurant_details.RestaurantName 
+ order by count(order_details.Order__ID) desc)
+ 
+ select  * from (select CTE.RestaurantName,restaurant_details.Category,Total_Order, 
+ dense_rank()over(partition by restaurant_details.Category order by Total_Order desc) as Ranking
+ from
+ CTE join restaurant_details on CTE.RestaurantName = restaurant_details.RestaurantName) as Count
+ where Ranking  < 4;
+ 
+ 
+ -- Restaurant Summary, Top Restaurant by Delivery rating
+ select * from order_details;
+ 
+ select restaurant_details.RestaurantName,
+ sum(order_details.Customer_Rating_Delivery) as Delivery_Rating
+ from order_details join restaurant_details on 
+ order_details.Restaurant__ID = restaurant_details.RestaurantID
+ group by restaurant_details.RestaurantName order by sum(order_details.Customer_Rating_Delivery) desc limit 3;
+ 
+ -- Zone Summary
+ select * from restaurant_details;
+ select restaurant_details.Zone, count(order_details.Order__ID) as 'Total_Order' from restaurant_details join order_details on 
+ order_details.Restaurant__ID = restaurant_details.RestaurantID
+ group by restaurant_details.Zone order by count(order_details.Order__ID) desc;
+ 
+ select restaurant_details.Zone, sum(order_details.Order__Amount) as 'Total_Revenue'
+ from restaurant_details join order_details on 
+ order_details.Restaurant__ID = restaurant_details.RestaurantID
+ group by restaurant_details.Zone order by count(order_details.Order__Amount) desc;
+ 
+ -- Cuisine Summary
+
+ select restaurant_details.Cuisine, count(order_details.Order__ID) as 'Total_Order'
+ from restaurant_details join order_details on 
+ order_details.Restaurant__ID = restaurant_details.RestaurantID
+ group by restaurant_details.Cuisine order by count(order_details.Order__ID) desc;
+
+
+select restaurant_details.Cuisine, sum(order_details.Order__Amount) as 'Total_Order'
+ from restaurant_details join order_details on 
+ order_details.Restaurant__ID = restaurant_details.RestaurantID
+ group by restaurant_details.Cuisine order by sum(order_details.Order__Amount) desc;
